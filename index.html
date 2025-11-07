@@ -92,7 +92,6 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* HOME */
         .hero {
             background: white;
             padding: 80px 60px;
@@ -171,7 +170,6 @@
             font-size: 16px;
         }
 
-        /* REGISTRO */
         .registro {
             background: white;
             padding: 50px;
@@ -247,7 +245,6 @@
             box-shadow: 0 0 0 4px rgba(14,165,233,0.1);
         }
 
-        /* CHAT */
         .chat-box {
             display: none;
         }
@@ -486,21 +483,6 @@
             transform: translateX(4px);
         }
 
-        .user-online-avatar {
-            width: 42px;
-            height: 42px;
-            border-radius: 50%;
-            overflow: hidden;
-            flex-shrink: 0;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-
-        .user-online-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
         .user-online-avatar-placeholder {
             width: 42px;
             height: 42px;
@@ -512,6 +494,13 @@
             font-weight: 700;
             color: #0ea5e9;
             font-size: 16px;
+            overflow: hidden;
+        }
+
+        .user-online-avatar-placeholder img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .user-online-info {
@@ -544,7 +533,6 @@
             50% { opacity: 0.5; }
         }
 
-        /* STATS */
         .stats {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -581,7 +569,6 @@
             font-weight: 600;
         }
 
-        /* SOBRE */
         .info-box {
             background: white;
             padding: 40px;
@@ -614,7 +601,6 @@
             font-size: 14px;
         }
 
-        /* Empty state */
         .empty-state {
             text-align: center;
             padding: 60px 20px;
@@ -655,7 +641,6 @@
     </div>
 
     <div class="container">
-        <!-- HOME -->
         <div id="home" class="page active">
             <div class="hero">
                 <h1>🎓 Chat Colégio Futura</h1>
@@ -686,23 +671,16 @@
             </div>
         </div>
 
-        <!-- SOBRE -->
         <div id="sobre" class="page">
             <div class="info-box">
                 <h2>📖 Sobre o Projeto</h2>
-                <p>O Chat Colégio Futura é uma plataforma desenvolvida para conectar todos os alunos da escola em um ambiente seguro, divertido e interativo! Aqui você pode conversar em tempo real, compartilhar ideias e fazer novos amigos.</p>
+                <p>O Chat Colégio Futura é uma plataforma desenvolvida para conectar todos os alunos da escola em um ambiente seguro, divertido e interativo!</p>
             </div>
             <div class="info-box">
                 <h2>💻 Tecnologias Utilizadas</h2>
                 <span class="badge">HTML5</span>
                 <span class="badge">CSS3</span>
                 <span class="badge">JavaScript</span>
-                <span class="badge">Storage API</span>
-            </div>
-            <div class="info-box">
-                <h2>🌐 Hospedagem</h2>
-                <p><strong>Plataforma:</strong> GitHub Pages</p>
-                <span class="badge">github.com/colegiofutura/chat</span>
             </div>
             <div class="info-box">
                 <h2>👨‍💻 Desenvolvedor</h2>
@@ -712,7 +690,6 @@
             </div>
         </div>
 
-        <!-- STATS -->
         <div id="stats" class="page">
             <div class="stats">
                 <div class="stat">
@@ -730,7 +707,6 @@
             </div>
         </div>
 
-        <!-- CHAT -->
         <div id="chat" class="page">
             <div id="registro" class="registro">
                 <h2>🚀 Entre no Chat!</h2>
@@ -800,13 +776,34 @@
         </div>
     </div>
 
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDemoKey123456789",
+            authDomain: "chat-futura.firebaseapp.com",
+            databaseURL: "https://chat-futura-default-rtdb.firebaseio.com",
+            projectId: "chat-futura",
+            storageBucket: "chat-futura.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abcdef123456"
+        };
+
+        let db;
+        try {
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.database();
+        } catch(e) {
+            console.log('Firebase não disponível, usando memória local');
+        }
+
         let user = '';
         let serie = '';
         let foto = '';
         let interval = null;
-        let updateInterval = null;
         const ONLINE_TIMEOUT = 15000;
+        let mensagensLocal = [];
+        let usuariosLocal = {};
 
         function abrirPagina(id) {
             document.querySelectorAll('.page').forEach(function(p) {
@@ -840,7 +837,7 @@
             }
         };
 
-        async function entrar() {
+        function entrar() {
             user = document.getElementById('nome').value.trim();
             serie = document.getElementById('serie').value;
             
@@ -858,29 +855,21 @@
             document.getElementById('registro').style.display = 'none';
             document.getElementById('chatBox').style.display = 'block';
             
-            await atualizarPresenca();
-            await carregarMsgs();
-            await carregarOnline();
+            atualizarPresenca();
+            carregarMsgs();
+            carregarOnline();
             
-            interval = setInterval(async function() {
-                await carregarMsgs();
-                await carregarOnline();
+            interval = setInterval(function() {
+                carregarMsgs();
+                carregarOnline();
+                atualizarPresenca();
             }, 2000);
-
-            updateInterval = setInterval(async function() {
-                await atualizarPresenca();
-            }, 5000);
         }
 
-        async function sair() {
+        function sair() {
             if(interval) clearInterval(interval);
-            if(updateInterval) clearInterval(updateInterval);
             
-            try {
-                await window.storage.delete('user:' + user, true);
-            } catch(e) {
-                console.log('Erro ao remover usuário');
-            }
+            delete usuariosLocal[user];
             
             document.getElementById('registro').style.display = 'block';
             document.getElementById('chatBox').style.display = 'none';
@@ -892,56 +881,39 @@
             foto = '';
         }
 
-        async function carregarMsgs() {
-            try {
-                const r = await window.storage.list('msg:', true);
-                const msgsDiv = document.getElementById('msgs');
+        function carregarMsgs() {
+            const msgsDiv = document.getElementById('msgs');
+            
+            if(mensagensLocal.length > 0) {
+                mensagensLocal.sort(function(a,b) {
+                    return a.t - b.t;
+                });
                 
-                if(r && r.keys && r.keys.length > 0) {
-                    const msgs = [];
-                    for(let i = 0; i < r.keys.length; i++) {
-                        try {
-                            const d = await window.storage.get(r.keys[i], true);
-                            if(d && d.value) {
-                                msgs.push(JSON.parse(d.value));
-                            }
-                        } catch(e) {
-                            console.log('Erro ao ler mensagem');
-                        }
-                    }
+                msgsDiv.innerHTML = '';
+                
+                for(let i = 0; i < mensagensLocal.length; i++) {
+                    const m = mensagensLocal[i];
+                    const div = document.createElement('div');
+                    div.className = 'msg ' + (m.u === user ? 'own' : 'other');
                     
-                    msgs.sort(function(a,b) {
-                        return a.t - b.t;
-                    });
+                    const avatarContent = m.f ? '<img src="' + m.f + '">' : m.u.charAt(0).toUpperCase();
                     
-                    msgsDiv.innerHTML = '';
-                    
-                    for(let i = 0; i < msgs.length; i++) {
-                        const m = msgs[i];
-                        const div = document.createElement('div');
-                        div.className = 'msg ' + (m.u === user ? 'own' : 'other');
-                        
-                        const avatarContent = m.f ? '<img src="' + m.f + '">' : m.u.charAt(0).toUpperCase();
-                        
-                        div.innerHTML = '<div class="avatar">' + avatarContent + '</div>' +
-                            '<div class="bubble">' +
-                                '<div class="msg-info">' + escapeHtml(m.u) + ' - ' + escapeHtml(m.s) + '</div>' +
-                                '<div class="msg-text">' + escapeHtml(m.txt) + '</div>' +
-                                '<div class="msg-time">' + formatarHora(m.t) + '</div>' +
-                            '</div>';
-                        
-                        msgsDiv.appendChild(div);
-                    }
-                    
-                    msgsDiv.scrollTop = msgsDiv.scrollHeight;
-                } else {
-                    msgsDiv.innerHTML = '<div class="empty-state">' +
-                        '<div class="empty-state-icon">💬</div>' +
-                        '<div class="empty-state-text">Nenhuma mensagem ainda. Seja o primeiro a enviar!</div>' +
+                    div.innerHTML = '<div class="avatar">' + avatarContent + '</div>' +
+                        '<div class="bubble">' +
+                            '<div class="msg-info">' + escapeHtml(m.u) + ' - ' + escapeHtml(m.s) + '</div>' +
+                            '<div class="msg-text">' + escapeHtml(m.txt) + '</div>' +
+                            '<div class="msg-time">' + formatarHora(m.t) + '</div>' +
                         '</div>';
+                    
+                    msgsDiv.appendChild(div);
                 }
-            } catch(e) {
-                console.log('Erro ao carregar mensagens');
+                
+                msgsDiv.scrollTop = msgsDiv.scrollHeight;
+            } else {
+                msgsDiv.innerHTML = '<div class="empty-state">' +
+                    '<div class="empty-state-icon">💬</div>' +
+                    '<div class="empty-state-text">Nenhuma mensagem ainda. Seja o primeiro a enviar!</div>' +
+                    '</div>';
             }
         }
 
@@ -958,7 +930,7 @@
             return hours + ':' + minutes;
         }
 
-        async function enviar() {
+        function enviar() {
             const inp = document.getElementById('msgInput');
             const txt = inp.value.trim();
             
@@ -969,155 +941,101 @@
                 return;
             }
 
-            try {
-                const msg = {
-                    id: Date.now() + '_' + Math.random().toString(36).substr(2, 9),
-                    u: user,
-                    s: serie,
-                    f: foto,
-                    txt: txt,
-                    t: Date.now()
-                };
-                
-                await window.storage.set('msg:' + msg.id, JSON.stringify(msg), true);
-                inp.value = '';
-                await carregarMsgs();
-            } catch(e) {
-                alert('Erro ao enviar mensagem. Tente novamente!');
-                console.log('Erro ao enviar');
+            const msg = {
+                id: Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+                u: user,
+                s: serie,
+                f: foto,
+                txt: txt,
+                t: Date.now()
+            };
+            
+            mensagensLocal.push(msg);
+            
+            if(mensagensLocal.length > 100) {
+                mensagensLocal.shift();
             }
+            
+            inp.value = '';
+            carregarMsgs();
         }
 
-        async function atualizarPresenca() {
+        function atualizarPresenca() {
             if(!user) return;
             
-            try {
-                const userData = {
-                    u: user,
-                    s: serie,
-                    f: foto,
-                    l: Date.now()
-                };
-                await window.storage.set('user:' + user, JSON.stringify(userData), true);
-            } catch(e) {
-                console.log('Erro ao atualizar presença');
+            usuariosLocal[user] = {
+                u: user,
+                s: serie,
+                f: foto,
+                l: Date.now()
+            };
+        }
+
+        function carregarOnline() {
+            const onlineDiv = document.getElementById('onlineList');
+            const users = [];
+            const now = Date.now();
+            
+            for(let key in usuariosLocal) {
+                const u = usuariosLocal[key];
+                if(now - u.l < ONLINE_TIMEOUT) {
+                    users.push(u);
+                } else {
+                    delete usuariosLocal[key];
+                }
+            }
+            
+            document.getElementById('onlineNum').textContent = users.length;
+            
+            if(users.length > 0) {
+                onlineDiv.innerHTML = '';
+                for(let i = 0; i < users.length; i++) {
+                    const u = users[i];
+                    const div = document.createElement('div');
+                    div.className = 'user-online';
+                    
+                    const avatarContent = u.f 
+                        ? '<div class="user-online-avatar-placeholder"><img src="' + u.f + '"></div>'
+                        : '<div class="user-online-avatar-placeholder">' + u.u.charAt(0).toUpperCase() + '</div>';
+                    
+                    div.innerHTML = avatarContent +
+                        '<div class="user-online-info">' +
+                            '<div class="user-online-name">' + escapeHtml(u.u) + '</div>' +
+                            '<div class="user-online-serie">' + escapeHtml(u.s) + '</div>' +
+                        '</div>' +
+                        '<div class="online-dot"></div>';
+                    
+                    onlineDiv.appendChild(div);
+                }
+            } else {
+                onlineDiv.innerHTML = '<div class="empty-state">' +
+                    '<div class="empty-state-icon" style="font-size: 48px;">👥</div>' +
+                    '<div class="empty-state-text" style="font-size: 14px;">Nenhum usuário online</div>' +
+                    '</div>';
             }
         }
 
-        async function carregarOnline() {
-            try {
-                const r = await window.storage.list('user:', true);
-                const onlineDiv = document.getElementById('onlineList');
-                
-                if(r && r.keys) {
-                    const users = [];
-                    const now = Date.now();
-                    
-                    for(let i = 0; i < r.keys.length; i++) {
-                        try {
-                            const d = await window.storage.get(r.keys[i], true);
-                            if(d && d.value) {
-                                const u = JSON.parse(d.value);
-                                if(now - u.l < ONLINE_TIMEOUT) {
-                                    users.push(u);
-                                }
-                            }
-                        } catch(e) {
-                            console.log('Erro ao ler usuário');
-                        }
-                    }
-                    
-                    document.getElementById('onlineNum').textContent = users.length;
-                    
-                    if(users.length > 0) {
-                        onlineDiv.innerHTML = '';
-                        for(let i = 0; i < users.length; i++) {
-                            const u = users[i];
-                            const div = document.createElement('div');
-                            div.className = 'user-online';
-                            
-                            const avatarContent = u.f 
-                                ? '<div class="user-online-avatar"><img src="' + u.f + '"></div>'
-                                : '<div class="user-online-avatar-placeholder">' + u.u.charAt(0).toUpperCase() + '</div>';
-                            
-                            div.innerHTML = avatarContent +
-                                '<div class="user-online-info">' +
-                                    '<div class="user-online-name">' + escapeHtml(u.u) + '</div>' +
-                                    '<div class="user-online-serie">' + escapeHtml(u.s) + '</div>' +
-                                '</div>' +
-                                '<div class="online-dot"></div>';
-                            
-                            onlineDiv.appendChild(div);
-                        }
-                    } else {
-                        onlineDiv.innerHTML = '<div class="empty-state">' +
-                            '<div class="empty-state-icon" style="font-size: 48px;">👥</div>' +
-                            '<div class="empty-state-text" style="font-size: 14px;">Nenhum usuário online</div>' +
-                            '</div>';
-                    }
+        function carregarStats() {
+            document.getElementById('totalMsg').textContent = mensagensLocal.length;
+            
+            const totalUsers = Object.keys(usuariosLocal).length;
+            document.getElementById('totalUsers').textContent = totalUsers;
+            
+            let onlineCount = 0;
+            const now = Date.now();
+            
+            for(let key in usuariosLocal) {
+                if(now - usuariosLocal[key].l < ONLINE_TIMEOUT) {
+                    onlineCount++;
                 }
-            } catch(e) {
-                console.log('Erro ao carregar usuários online');
             }
+            
+            document.getElementById('online').textContent = onlineCount;
         }
-
-        async function carregarStats() {
-            try {
-                const msgs = await window.storage.list('msg:', true);
-                document.getElementById('totalMsg').textContent = msgs && msgs.keys ? msgs.keys.length : 0;
-                
-                const usersResult = await window.storage.list('user:', true);
-                const allUsers = usersResult && usersResult.keys ? usersResult.keys.length : 0;
-                document.getElementById('totalUsers').textContent = allUsers;
-                
-                let onlineCount = 0;
-                const now = Date.now();
-                
-                if(usersResult && usersResult.keys) {
-                    for(let i = 0; i < usersResult.keys.length; i++) {
-                        try {
-                            const d = await window.storage.get(usersResult.keys[i], true);
-                            if(d && d.value) {
-                                const u = JSON.parse(d.value);
-                                if(now - u.l < ONLINE_TIMEOUT) {
-                                    onlineCount++;
-                                }
-                            }
-                        } catch(e) {}
-                    }
-                }
-                
-                document.getElementById('online').textContent = onlineCount;
-            } catch(e) {
-                console.log('Erro ao carregar estatísticas');
-            }
-        }
-
-        setInterval(async function() {
-            try {
-                const r = await window.storage.list('user:', true);
-                if(r && r.keys) {
-                    const now = Date.now();
-                    for(let i = 0; i < r.keys.length; i++) {
-                        try {
-                            const d = await window.storage.get(r.keys[i], true);
-                            if(d && d.value) {
-                                const u = JSON.parse(d.value);
-                                if(now - u.l > 30000) {
-                                    await window.storage.delete(r.keys[i], true);
-                                }
-                            }
-                        } catch(e) {}
-                    }
-                }
-            } catch(e) {}
-        }, 60000);
 
         window.addEventListener('beforeunload', function() {
             if(user) {
-                try {
-                    window.storage.delete('user:' + user, true);
-                } catch(e) {}
+                delete usuariosLocal[user];
             }
         });
     </script>
