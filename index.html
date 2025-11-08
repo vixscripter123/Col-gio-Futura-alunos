@@ -495,6 +495,7 @@
             color: #0ea5e9;
             font-size: 16px;
             overflow: hidden;
+            flex-shrink: 0;
         }
 
         .user-online-avatar-placeholder img {
@@ -617,6 +618,25 @@
             color: #64748b;
         }
 
+        .alert-firebase {
+            background: #fef3c7;
+            border: 2px solid #fbbf24;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .alert-firebase h3 {
+            color: #92400e;
+            margin-bottom: 10px;
+        }
+
+        .alert-firebase p {
+            color: #78350f;
+            font-size: 14px;
+        }
+
         @media (max-width: 768px) {
             .sidebar { display: none; }
             .hero h1 { font-size: 36px; }
@@ -647,11 +667,24 @@
                 <p>Conecte-se com seus colegas em tempo real!</p>
                 <button class="btn" onclick="abrirPagina('chat')">Entrar no Chat →</button>
             </div>
+            
+            <div class="alert-firebase">
+                <h3>⚠️ IMPORTANTE - Como Usar com Servidor Real</h3>
+                <p><strong>Este chat precisa de um servidor Firebase configurado!</strong></p>
+                <p>📝 Para funcionar como servidor real compartilhado entre todos:</p>
+                <p>1. Crie uma conta grátis em <strong>firebase.google.com</strong></p>
+                <p>2. Crie um novo projeto</p>
+                <p>3. Ative o <strong>Realtime Database</strong></p>
+                <p>4. Configure as regras como públicas (para testes)</p>
+                <p>5. Copie as credenciais e cole no código JavaScript</p>
+                <p style="margin-top: 10px;">💡 <strong>Alternativa:</strong> Use o Claude Storage API (funciona apenas aqui no Claude.ai)</p>
+            </div>
+
             <div class="cards">
                 <div class="card">
                     <div class="card-icon">💬</div>
                     <h3>Chat em Tempo Real</h3>
-                    <p>Converse instantaneamente com seus amigos</p>
+                    <p>Todos veem as mesmas mensagens ao mesmo tempo</p>
                 </div>
                 <div class="card">
                     <div class="card-icon">📸</div>
@@ -661,12 +694,12 @@
                 <div class="card">
                     <div class="card-icon">👥</div>
                     <h3>Usuários Online</h3>
-                    <p>Veja quem está conectado agora</p>
+                    <p>Veja quem está conectado em tempo real</p>
                 </div>
                 <div class="card">
-                    <div class="card-icon">🔒</div>
-                    <h3>Seguro</h3>
-                    <p>Ambiente exclusivo e protegido</p>
+                    <div class="card-icon">🌐</div>
+                    <h3>Servidor Real</h3>
+                    <p>Funciona entre diferentes dispositivos</p>
                 </div>
             </div>
         </div>
@@ -675,12 +708,24 @@
             <div class="info-box">
                 <h2>📖 Sobre o Projeto</h2>
                 <p>O Chat Colégio Futura é uma plataforma desenvolvida para conectar todos os alunos da escola em um ambiente seguro, divertido e interativo!</p>
+                <p><strong>Para funcionar como servidor real</strong>, este chat precisa de um backend. Recomendamos Firebase (gratuito) ou a Claude Storage API.</p>
             </div>
             <div class="info-box">
-                <h2>💻 Tecnologias Utilizadas</h2>
+                <h2>💻 Tecnologias</h2>
                 <span class="badge">HTML5</span>
                 <span class="badge">CSS3</span>
                 <span class="badge">JavaScript</span>
+                <span class="badge">Firebase Realtime Database</span>
+            </div>
+            <div class="info-box">
+                <h2>🔧 Como Configurar Firebase</h2>
+                <p><strong>Passo 1:</strong> Acesse firebase.google.com e faça login</p>
+                <p><strong>Passo 2:</strong> Clique em "Adicionar Projeto"</p>
+                <p><strong>Passo 3:</strong> No menu, vá em "Realtime Database"</p>
+                <p><strong>Passo 4:</strong> Clique em "Criar banco de dados"</p>
+                <p><strong>Passo 5:</strong> Escolha "Iniciar no modo de teste"</p>
+                <p><strong>Passo 6:</strong> Copie as credenciais do projeto</p>
+                <p><strong>Passo 7:</strong> Cole as credenciais no código JavaScript (linha firebaseConfig)</p>
             </div>
             <div class="info-box">
                 <h2>👨‍💻 Desenvolvedor</h2>
@@ -779,265 +824,280 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <script>
+        // Credenciais do Firebase configuradas!
         const firebaseConfig = {
-            apiKey: "AIzaSyDemoKey123456789",
-            authDomain: "chat-futura.firebaseapp.com",
-            databaseURL: "https://chat-futura-default-rtdb.firebaseio.com",
-            projectId: "chat-futura",
-            storageBucket: "chat-futura.appspot.com",
-            messagingSenderId: "123456789",
-            appId: "1:123456789:web:abcdef123456"
+            apiKey: "AIzaSyDjOHEY.EodJlUDz_0010KAK9JN9hHSks",
+            authDomain: "colgio-futura-alunos.firebaseapp.com",
+            databaseURL: "https://colgio-futura-alunos-default-rtdb.firebaseio.com",
+            projectId: "colgio-futura-alunos",
+            storageBucket: "colgio-futura-alunos.firebasestorage.app",
+            messagingSenderId: "737866383013",
+            appId: "1:737866383013:web:dcb1f1f1e37037ab574c",
+            measurementId: "G-9BXCQ5EP7W"
         };
 
         let db;
+        let dbConfigured = false;
+        
         try {
-            firebase.initializeApp(firebaseConfig);
-            db = firebase.database();
+            if(firebaseConfig.apiKey !== "COLE_SUA_API_KEY_AQUI") {
+                firebase.initializeApp(firebaseConfig);
+                db = firebase.database();
+                dbConfigured = true;
+                console.log('✅ Firebase conectado!');
+            } else {
+                console.log('⚠️ Configure o Firebase para usar o chat compartilhado');
+            }
         } catch(e) {
-            console.log('Firebase não disponível, usando memória local');
+            console.log('⚠️ Firebase não configurado:', e);
         }
 
         let user = '';
         let serie = '';
         let foto = '';
-        let interval = null;
+        let presenceRef = null;
         const ONLINE_TIMEOUT = 15000;
-        let mensagensLocal = [];
-        let usuariosLocal = {};
 
+        // Navegação entre páginas
         function abrirPagina(id) {
-            document.querySelectorAll('.page').forEach(function(p) {
-                p.classList.remove('active');
-            });
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.menu button').forEach(b => b.classList.remove('active'));
             document.getElementById(id).classList.add('active');
-            
-            document.querySelectorAll('.menu button').forEach(function(b) {
-                b.classList.remove('active');
-            });
             document.getElementById('btn-' + id).classList.add('active');
-            
-            if(id === 'stats') {
-                carregarStats();
-            }
         }
 
-        document.getElementById('foto').onchange = function(e) {
+        // Preview da foto
+        document.getElementById('foto').addEventListener('change', function(e) {
             const file = e.target.files[0];
-            if(file) {
-                if(file.size > 2000000) {
-                    alert('Foto muito grande! Máximo 2MB');
-                    return;
-                }
+            if (file) {
                 const reader = new FileReader();
-                reader.onload = function(e) {
-                    foto = e.target.result;
-                    document.getElementById('preview').innerHTML = '<img src="' + foto + '">';
+                reader.onload = function(event) {
+                    foto = event.target.result;
+                    document.getElementById('preview').innerHTML = `<img src="${foto}">`;
                 };
                 reader.readAsDataURL(file);
             }
-        };
+        });
 
-        function entrar() {
-            user = document.getElementById('nome').value.trim();
-            serie = document.getElementById('serie').value;
+        // Entrar no chat
+        async function entrar() {
+            const nome = document.getElementById('nome').value.trim();
+            const serieVal = document.getElementById('serie').value;
             
-            if(!user || !serie) { 
-                alert('Por favor, preencha todos os campos!'); 
-                return; 
-            }
-
-            if(user.length < 3) {
-                alert('Nome muito curto!');
+            if (!nome || !serieVal) {
+                alert('⚠️ Preencha todos os campos!');
                 return;
             }
 
-            document.getElementById('userInfo').textContent = user + ' - ' + serie;
+            user = nome;
+            serie = serieVal;
+
             document.getElementById('registro').style.display = 'none';
             document.getElementById('chatBox').style.display = 'block';
-            
-            atualizarPresenca();
-            carregarMsgs();
-            carregarOnline();
-            
-            interval = setInterval(function() {
-                carregarMsgs();
-                carregarOnline();
-                atualizarPresenca();
-            }, 2000);
+            document.getElementById('userInfo').textContent = `${user} - ${serie}`;
+
+            if (dbConfigured) {
+                // Firebase: Marcar presença
+                const userId = user.replace(/[^a-zA-Z0-9]/g, '_');
+                presenceRef = db.ref('online/' + userId);
+                await presenceRef.set({
+                    nome: user,
+                    serie: serie,
+                    foto: foto,
+                    timestamp: Date.now()
+                });
+
+                // Remover ao desconectar
+                presenceRef.onDisconnect().remove();
+
+                // Atualizar presença periodicamente
+                setInterval(() => {
+                    if (presenceRef) {
+                        presenceRef.update({ timestamp: Date.now() });
+                    }
+                }, 5000);
+
+                // Escutar mensagens
+                db.ref('messages').limitToLast(50).on('child_added', (snapshot) => {
+                    const msg = snapshot.val();
+                    adicionarMensagem(msg.nome, msg.texto, msg.foto, msg.serie, msg.timestamp, msg.nome === user);
+                });
+
+                // Escutar usuários online
+                db.ref('online').on('value', (snapshot) => {
+                    atualizarOnline(snapshot.val());
+                });
+
+                // Limpar usuários offline
+                limparOffline();
+                setInterval(limparOffline, 10000);
+            } else {
+                // Modo local (sem Firebase)
+                adicionarMensagem('Sistema', '⚠️ Modo local ativo. Configure o Firebase para chat compartilhado!', '', '', Date.now(), false);
+            }
+
+            carregarStats();
         }
 
+        // Enviar mensagem
+        async function enviar() {
+            const input = document.getElementById('msgInput');
+            const texto = input.value.trim();
+            
+            if (!texto) return;
+
+            if (dbConfigured) {
+                await db.ref('messages').push({
+                    nome: user,
+                    texto: texto,
+                    foto: foto,
+                    serie: serie,
+                    timestamp: Date.now()
+                });
+            } else {
+                // Modo local
+                adicionarMensagem(user, texto, foto, serie, Date.now(), true);
+            }
+
+            input.value = '';
+            input.focus();
+        }
+
+        // Adicionar mensagem na interface
+        function adicionarMensagem(nome, texto, fotoUrl, serieVal, timestamp, isOwn) {
+            const msgs = document.getElementById('msgs');
+            
+            // Remover empty state
+            const empty = msgs.querySelector('.empty-state');
+            if (empty) empty.remove();
+
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `msg ${isOwn ? 'own' : 'other'}`;
+            
+            const avatarDiv = document.createElement('div');
+            avatarDiv.className = 'avatar';
+            avatarDiv.innerHTML = fotoUrl ? `<img src="${fotoUrl}">` : nome.charAt(0).toUpperCase();
+
+            const bubbleDiv = document.createElement('div');
+            bubbleDiv.className = 'bubble';
+            
+            const hora = new Date(timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            
+            bubbleDiv.innerHTML = `
+                <div class="msg-info">${nome} - ${serieVal}</div>
+                <div class="msg-text">${texto}</div>
+                <div class="msg-time">${hora}</div>
+            `;
+
+            msgDiv.appendChild(avatarDiv);
+            msgDiv.appendChild(bubbleDiv);
+            msgs.appendChild(msgDiv);
+            msgs.scrollTop = msgs.scrollHeight;
+        }
+
+        // Atualizar lista de usuários online
+        function atualizarOnline(onlineData) {
+            const list = document.getElementById('onlineList');
+            const now = Date.now();
+            
+            if (!onlineData) {
+                list.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon" style="font-size: 48px;">👥</div>
+                        <div class="empty-state-text" style="font-size: 14px;">Nenhum usuário online</div>
+                    </div>
+                `;
+                document.getElementById('onlineNum').textContent = '0';
+                document.getElementById('online').textContent = '0';
+                return;
+            }
+
+            const usuarios = Object.values(onlineData).filter(u => (now - u.timestamp) < ONLINE_TIMEOUT);
+            
+            list.innerHTML = '';
+            usuarios.forEach(u => {
+                const userDiv = document.createElement('div');
+                userDiv.className = 'user-online';
+                userDiv.innerHTML = `
+                    <div class="user-online-avatar-placeholder">
+                        ${u.foto ? `<img src="${u.foto}">` : u.nome.charAt(0).toUpperCase()}
+                    </div>
+                    <div class="user-online-info">
+                        <div class="user-online-name">${u.nome}</div>
+                        <div class="user-online-serie">${u.serie}</div>
+                    </div>
+                    <div class="online-dot"></div>
+                `;
+                list.appendChild(userDiv);
+            });
+
+            document.getElementById('onlineNum').textContent = usuarios.length;
+            document.getElementById('online').textContent = usuarios.length;
+        }
+
+        // Limpar usuários offline
+        async function limparOffline() {
+            if (!dbConfigured) return;
+            
+            const snapshot = await db.ref('online').once('value');
+            const now = Date.now();
+            const updates = {};
+            
+            snapshot.forEach(child => {
+                const data = child.val();
+                if ((now - data.timestamp) > ONLINE_TIMEOUT) {
+                    updates[child.key] = null;
+                }
+            });
+            
+            if (Object.keys(updates).length > 0) {
+                await db.ref('online').update(updates);
+            }
+        }
+
+        // Carregar estatísticas
+        async function carregarStats() {
+            if (!dbConfigured) {
+                document.getElementById('totalMsg').textContent = '-';
+                document.getElementById('totalUsers').textContent = '-';
+                return;
+            }
+
+            const msgsSnapshot = await db.ref('messages').once('value');
+            const totalMsgs = msgsSnapshot.numChildren();
+            document.getElementById('totalMsg').textContent = totalMsgs;
+
+            const usersSnapshot = await db.ref('online').once('value');
+            const totalUsers = usersSnapshot.numChildren();
+            document.getElementById('totalUsers').textContent = totalUsers;
+        }
+
+        // Sair do chat
         function sair() {
-            if(interval) clearInterval(interval);
+            if (presenceRef) {
+                presenceRef.remove();
+                presenceRef = null;
+            }
             
-            delete usuariosLocal[user];
-            
-            document.getElementById('registro').style.display = 'block';
             document.getElementById('chatBox').style.display = 'none';
+            document.getElementById('registro').style.display = 'block';
+            document.getElementById('msgs').innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">💬</div>
+                    <div class="empty-state-text">Nenhuma mensagem ainda. Seja o primeiro a enviar!</div>
+                </div>
+            `;
+            
             document.getElementById('nome').value = '';
             document.getElementById('serie').value = '';
             document.getElementById('preview').innerHTML = '📷';
-            user = ''; 
-            serie = ''; 
             foto = '';
+            user = '';
+            serie = '';
         }
 
-        function carregarMsgs() {
-            const msgsDiv = document.getElementById('msgs');
-            
-            if(mensagensLocal.length > 0) {
-                mensagensLocal.sort(function(a,b) {
-                    return a.t - b.t;
-                });
-                
-                msgsDiv.innerHTML = '';
-                
-                for(let i = 0; i < mensagensLocal.length; i++) {
-                    const m = mensagensLocal[i];
-                    const div = document.createElement('div');
-                    div.className = 'msg ' + (m.u === user ? 'own' : 'other');
-                    
-                    const avatarContent = m.f ? '<img src="' + m.f + '">' : m.u.charAt(0).toUpperCase();
-                    
-                    div.innerHTML = '<div class="avatar">' + avatarContent + '</div>' +
-                        '<div class="bubble">' +
-                            '<div class="msg-info">' + escapeHtml(m.u) + ' - ' + escapeHtml(m.s) + '</div>' +
-                            '<div class="msg-text">' + escapeHtml(m.txt) + '</div>' +
-                            '<div class="msg-time">' + formatarHora(m.t) + '</div>' +
-                        '</div>';
-                    
-                    msgsDiv.appendChild(div);
-                }
-                
-                msgsDiv.scrollTop = msgsDiv.scrollHeight;
-            } else {
-                msgsDiv.innerHTML = '<div class="empty-state">' +
-                    '<div class="empty-state-icon">💬</div>' +
-                    '<div class="empty-state-text">Nenhuma mensagem ainda. Seja o primeiro a enviar!</div>' +
-                    '</div>';
-            }
-        }
-
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        function formatarHora(timestamp) {
-            const date = new Date(timestamp);
-            const hours = date.getHours().toString().padStart(2, '0');
-            const minutes = date.getMinutes().toString().padStart(2, '0');
-            return hours + ':' + minutes;
-        }
-
-        function enviar() {
-            const inp = document.getElementById('msgInput');
-            const txt = inp.value.trim();
-            
-            if(!txt) return;
-            
-            if(txt.length > 500) {
-                alert('Mensagem muito longa! Máximo 500 caracteres.');
-                return;
-            }
-
-            const msg = {
-                id: Date.now() + '_' + Math.random().toString(36).substr(2, 9),
-                u: user,
-                s: serie,
-                f: foto,
-                txt: txt,
-                t: Date.now()
-            };
-            
-            mensagensLocal.push(msg);
-            
-            if(mensagensLocal.length > 100) {
-                mensagensLocal.shift();
-            }
-            
-            inp.value = '';
-            carregarMsgs();
-        }
-
-        function atualizarPresenca() {
-            if(!user) return;
-            
-            usuariosLocal[user] = {
-                u: user,
-                s: serie,
-                f: foto,
-                l: Date.now()
-            };
-        }
-
-        function carregarOnline() {
-            const onlineDiv = document.getElementById('onlineList');
-            const users = [];
-            const now = Date.now();
-            
-            for(let key in usuariosLocal) {
-                const u = usuariosLocal[key];
-                if(now - u.l < ONLINE_TIMEOUT) {
-                    users.push(u);
-                } else {
-                    delete usuariosLocal[key];
-                }
-            }
-            
-            document.getElementById('onlineNum').textContent = users.length;
-            
-            if(users.length > 0) {
-                onlineDiv.innerHTML = '';
-                for(let i = 0; i < users.length; i++) {
-                    const u = users[i];
-                    const div = document.createElement('div');
-                    div.className = 'user-online';
-                    
-                    const avatarContent = u.f 
-                        ? '<div class="user-online-avatar-placeholder"><img src="' + u.f + '"></div>'
-                        : '<div class="user-online-avatar-placeholder">' + u.u.charAt(0).toUpperCase() + '</div>';
-                    
-                    div.innerHTML = avatarContent +
-                        '<div class="user-online-info">' +
-                            '<div class="user-online-name">' + escapeHtml(u.u) + '</div>' +
-                            '<div class="user-online-serie">' + escapeHtml(u.s) + '</div>' +
-                        '</div>' +
-                        '<div class="online-dot"></div>';
-                    
-                    onlineDiv.appendChild(div);
-                }
-            } else {
-                onlineDiv.innerHTML = '<div class="empty-state">' +
-                    '<div class="empty-state-icon" style="font-size: 48px;">👥</div>' +
-                    '<div class="empty-state-text" style="font-size: 14px;">Nenhum usuário online</div>' +
-                    '</div>';
-            }
-        }
-
-        function carregarStats() {
-            document.getElementById('totalMsg').textContent = mensagensLocal.length;
-            
-            const totalUsers = Object.keys(usuariosLocal).length;
-            document.getElementById('totalUsers').textContent = totalUsers;
-            
-            let onlineCount = 0;
-            const now = Date.now();
-            
-            for(let key in usuariosLocal) {
-                if(now - usuariosLocal[key].l < ONLINE_TIMEOUT) {
-                    onlineCount++;
-                }
-            }
-            
-            document.getElementById('online').textContent = onlineCount;
-        }
-
-        window.addEventListener('beforeunload', function() {
-            if(user) {
-                delete usuariosLocal[user];
-            }
-        });
+        // Atualizar stats a cada 10 segundos
+        setInterval(carregarStats, 10000);
     </script>
 </body>
 </html>
