@@ -697,9 +697,9 @@
                     <p>Veja quem está conectado em tempo real</p>
                 </div>
                 <div class="card">
-                    <div class="card-icon">🌐</div>
-                    <h3>Servidor Real</h3>
-                    <p>Funciona entre diferentes dispositivos</p>
+                    <div class="card-icon">💾</div>
+                    <h3>Login Salvo</h3>
+                    <p>Seus dados ficam salvos automaticamente</p>
                 </div>
             </div>
         </div>
@@ -709,6 +709,7 @@
                 <h2>📖 Sobre o Projeto</h2>
                 <p>O Chat Colégio Futura é uma plataforma desenvolvida para conectar todos os alunos da escola em um ambiente seguro, divertido e interativo!</p>
                 <p><strong>Para funcionar como servidor real</strong>, este chat precisa de um backend. Recomendamos Firebase (gratuito) ou a Claude Storage API.</p>
+                <p><strong>✨ Novo:</strong> Agora com salvamento automático de login e mensagens!</p>
             </div>
             <div class="info-box">
                 <h2>💻 Tecnologias</h2>
@@ -716,6 +717,7 @@
                 <span class="badge">CSS3</span>
                 <span class="badge">JavaScript</span>
                 <span class="badge">Firebase Realtime Database</span>
+                <span class="badge">LocalStorage</span>
             </div>
             <div class="info-box">
                 <h2>🔧 Como Configurar Firebase</h2>
@@ -780,7 +782,8 @@
                         <option>9º Ano</option>
                     </select>
                 </div>
-                <button class="btn" style="width:100%" onclick="entrar()">🚀 Entrar no Chat</button>
+                <button class="btn" style="width:100%; margin-bottom: 12px;" onclick="entrar()">🚀 Entrar no Chat</button>
+                <button class="btn" style="width:100%; background: linear-gradient(135deg, #ef4444, #dc2626);" onclick="limparDados()">🗑️ Limpar Dados Salvos</button>
             </div>
 
             <div id="chatBox" class="chat-box">
@@ -858,6 +861,50 @@
         let presenceRef = null;
         const ONLINE_TIMEOUT = 15000;
 
+        // Carregar dados salvos ao iniciar
+        window.addEventListener('load', () => {
+            carregarLoginSalvo();
+        });
+
+        // Carregar login salvo e auto-entrar
+        function carregarLoginSalvo() {
+            const dadosSalvos = localStorage.getItem('chatFuturaLogin');
+            if (dadosSalvos) {
+                const dados = JSON.parse(dadosSalvos);
+                user = dados.nome;
+                serie = dados.serie;
+                foto = dados.foto || '';
+                
+                document.getElementById('nome').value = user;
+                document.getElementById('serie').value = serie;
+                if (foto) {
+                    document.getElementById('preview').innerHTML = `<img src="${foto}">`;
+                }
+                
+                setTimeout(() => iniciarChat(), 500);
+            }
+        }
+
+        // Salvar/Carregar mensagens localStorage
+        function salvarMensagem(nome, texto, fotoUrl, serieVal, timestamp) {
+            if (!dbConfigured) {
+                let mensagens = localStorage.getItem('chatFuturaMensagens');
+                mensagens = mensagens ? JSON.parse(mensagens) : [];
+                mensagens.push({ nome, texto, foto: fotoUrl, serie: serieVal, timestamp });
+                if (mensagens.length > 50) mensagens = mensagens.slice(-50);
+                localStorage.setItem('chatFuturaMensagens', JSON.stringify(mensagens));
+            }
+        }
+
+        function carregarMensagensSalvas() {
+            const mensagensSalvas = localStorage.getItem('chatFuturaMensagens');
+            if (mensagensSalvas && !dbConfigured) {
+                JSON.parse(mensagensSalvas).forEach(msg => {
+                    adicionarMensagem(msg.nome, msg.texto, msg.foto, msg.serie, msg.timestamp, msg.nome === user);
+                });
+            }
+        }
+
         // Navegação entre páginas
         function abrirPagina(id) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -879,7 +926,7 @@
             }
         });
 
-        // Entrar no chat
+        // Entrar no chat (manual + auto-login)
         async function entrar() {
             const nome = document.getElementById('nome').value.trim();
             const serieVal = document.getElementById('serie').value;
@@ -891,49 +938,39 @@
 
             user = nome;
             serie = serieVal;
+            
+            // Salvar login
+            localStorage.setItem('chatFuturaLogin', JSON.stringify({ nome: user, serie, foto }));
+            
+            await iniciarChat();
+        }
 
+        // Iniciar chat (usado por entrar() e auto-login)
+        async function iniciarChat() {
             document.getElementById('registro').style.display = 'none';
             document.getElementById('chatBox').style.display = 'block';
             document.getElementById('userInfo').textContent = `${user} - ${serie}`;
 
             if (dbConfigured) {
-                // Firebase: Marcar presença
                 const userId = user.replace(/[^a-zA-Z0-9]/g, '_');
                 presenceRef = db.ref('online/' + userId);
-                await presenceRef.set({
-                    nome: user,
-                    serie: serie,
-                    foto: foto,
-                    timestamp: Date.now()
-                });
-
-                // Remover ao desconectar
+                await presenceRef.set({ nome: user, serie, foto, timestamp: Date.now() });
                 presenceRef.onDisconnect().remove();
 
-                // Atualizar presença periodicamente
-                setInterval(() => {
-                    if (presenceRef) {
-                        presenceRef.update({ timestamp: Date.now() });
-                    }
-                }, 5000);
+                setInterval(() => presenceRef?.update({ timestamp: Date.now() }), 5000);
 
-                // Escutar mensagens
                 db.ref('messages').limitToLast(50).on('child_added', (snapshot) => {
                     const msg = snapshot.val();
                     adicionarMensagem(msg.nome, msg.texto, msg.foto, msg.serie, msg.timestamp, msg.nome === user);
                 });
 
-                // Escutar usuários online
-                db.ref('online').on('value', (snapshot) => {
-                    atualizarOnline(snapshot.val());
-                });
+                db.ref('online').on('value', (snapshot) => atualizarOnline(snapshot.val()));
 
-                // Limpar usuários offline
                 limparOffline();
                 setInterval(limparOffline, 10000);
             } else {
-                // Modo local (sem Firebase)
-                adicionarMensagem('Sistema', '⚠️ Modo local ativo. Configure o Firebase para chat compartilhado!', '', '', Date.now(), false);
+                carregarMensagensSalvas();
+                adicionarMensagem('Sistema', dbConfigured ? '✅ Login restaurado!' : '✅ Login salvo! Mensagens armazenadas localmente.', '', '', Date.now(), false);
             }
 
             carregarStats();
@@ -943,20 +980,15 @@
         async function enviar() {
             const input = document.getElementById('msgInput');
             const texto = input.value.trim();
-            
             if (!texto) return;
 
+            const timestamp = Date.now();
+
             if (dbConfigured) {
-                await db.ref('messages').push({
-                    nome: user,
-                    texto: texto,
-                    foto: foto,
-                    serie: serie,
-                    timestamp: Date.now()
-                });
+                await db.ref('messages').push({ nome: user, texto, foto, serie, timestamp });
             } else {
-                // Modo local
-                adicionarMensagem(user, texto, foto, serie, Date.now(), true);
+                adicionarMensagem(user, texto, foto, serie, timestamp, true);
+                salvarMensagem(user, texto, foto, serie, timestamp);
             }
 
             input.value = '';
@@ -966,31 +998,22 @@
         // Adicionar mensagem na interface
         function adicionarMensagem(nome, texto, fotoUrl, serieVal, timestamp, isOwn) {
             const msgs = document.getElementById('msgs');
-            
-            // Remover empty state
-            const empty = msgs.querySelector('.empty-state');
-            if (empty) empty.remove();
+            msgs.querySelector('.empty-state')?.remove();
 
             const msgDiv = document.createElement('div');
             msgDiv.className = `msg ${isOwn ? 'own' : 'other'}`;
             
-            const avatarDiv = document.createElement('div');
-            avatarDiv.className = 'avatar';
-            avatarDiv.innerHTML = fotoUrl ? `<img src="${fotoUrl}">` : nome.charAt(0).toUpperCase();
-
-            const bubbleDiv = document.createElement('div');
-            bubbleDiv.className = 'bubble';
-            
             const hora = new Date(timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
             
-            bubbleDiv.innerHTML = `
-                <div class="msg-info">${nome} - ${serieVal}</div>
-                <div class="msg-text">${texto}</div>
-                <div class="msg-time">${hora}</div>
+            msgDiv.innerHTML = `
+                <div class="avatar">${fotoUrl ? `<img src="${fotoUrl}">` : nome.charAt(0).toUpperCase()}</div>
+                <div class="bubble">
+                    <div class="msg-info">${nome} - ${serieVal}</div>
+                    <div class="msg-text">${texto}</div>
+                    <div class="msg-time">${hora}</div>
+                </div>
             `;
 
-            msgDiv.appendChild(avatarDiv);
-            msgDiv.appendChild(bubbleDiv);
             msgs.appendChild(msgDiv);
             msgs.scrollTop = msgs.scrollHeight;
         }
@@ -1001,12 +1024,7 @@
             const now = Date.now();
             
             if (!onlineData) {
-                list.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon" style="font-size: 48px;">👥</div>
-                        <div class="empty-state-text" style="font-size: 14px;">Nenhum usuário online</div>
-                    </div>
-                `;
+                list.innerHTML = '<div class="empty-state"><div class="empty-state-icon" style="font-size: 48px;">👥</div><div class="empty-state-text" style="font-size: 14px;">Nenhum usuário online</div></div>';
                 document.getElementById('onlineNum').textContent = '0';
                 document.getElementById('online').textContent = '0';
                 return;
@@ -1014,11 +1032,8 @@
 
             const usuarios = Object.values(onlineData).filter(u => (now - u.timestamp) < ONLINE_TIMEOUT);
             
-            list.innerHTML = '';
-            usuarios.forEach(u => {
-                const userDiv = document.createElement('div');
-                userDiv.className = 'user-online';
-                userDiv.innerHTML = `
+            list.innerHTML = usuarios.map(u => `
+                <div class="user-online">
                     <div class="user-online-avatar-placeholder">
                         ${u.foto ? `<img src="${u.foto}">` : u.nome.charAt(0).toUpperCase()}
                     </div>
@@ -1027,12 +1042,12 @@
                         <div class="user-online-serie">${u.serie}</div>
                     </div>
                     <div class="online-dot"></div>
-                `;
-                list.appendChild(userDiv);
-            });
+                </div>
+            `).join('');
 
-            document.getElementById('onlineNum').textContent = usuarios.length;
-            document.getElementById('online').textContent = usuarios.length;
+            const count = usuarios.length;
+            document.getElementById('onlineNum').textContent = count;
+            document.getElementById('online').textContent = count;
         }
 
         // Limpar usuários offline
@@ -1044,8 +1059,7 @@
             const updates = {};
             
             snapshot.forEach(child => {
-                const data = child.val();
-                if ((now - data.timestamp) > ONLINE_TIMEOUT) {
+                if ((now - child.val().timestamp) > ONLINE_TIMEOUT) {
                     updates[child.key] = null;
                 }
             });
@@ -1063,21 +1077,21 @@
                 return;
             }
 
-            const msgsSnapshot = await db.ref('messages').once('value');
-            const totalMsgs = msgsSnapshot.numChildren();
-            document.getElementById('totalMsg').textContent = totalMsgs;
-
-            const usersSnapshot = await db.ref('online').once('value');
-            const totalUsers = usersSnapshot.numChildren();
-            document.getElementById('totalUsers').textContent = totalUsers;
+            const [msgsSnap, usersSnap] = await Promise.all([
+                db.ref('messages').once('value'),
+                db.ref('online').once('value')
+            ]);
+            
+            document.getElementById('totalMsg').textContent = msgsSnap.numChildren();
+            document.getElementById('totalUsers').textContent = usersSnap.numChildren();
         }
 
         // Sair do chat
         function sair() {
-            if (presenceRef) {
-                presenceRef.remove();
-                presenceRef = null;
-            }
+            if (!confirm('🚪 Deseja sair?\n\n✅ Login e mensagens ficam salvos')) return;
+            
+            presenceRef?.remove();
+            presenceRef = null;
             
             document.getElementById('chatBox').style.display = 'none';
             document.getElementById('registro').style.display = 'block';
@@ -1087,13 +1101,21 @@
                     <div class="empty-state-text">Nenhuma mensagem ainda. Seja o primeiro a enviar!</div>
                 </div>
             `;
+        }
+
+        // Limpar todos os dados salvos
+        function limparDados() {
+            if (!confirm('🗑️ ATENÇÃO!\n\nApagar login e mensagens?')) return;
+            
+            localStorage.removeItem('chatFuturaLogin');
+            localStorage.removeItem('chatFuturaMensagens');
             
             document.getElementById('nome').value = '';
             document.getElementById('serie').value = '';
             document.getElementById('preview').innerHTML = '📷';
-            foto = '';
-            user = '';
-            serie = '';
+            foto = user = serie = '';
+            
+            alert('✅ Dados apagados!');
         }
 
         // Atualizar stats a cada 10 segundos
