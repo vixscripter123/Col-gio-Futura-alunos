@@ -5,7 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat Colégio Futura</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
         
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -395,6 +399,93 @@
             margin-top: 6px;
         }
 
+        .admin-badge {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            margin-left: 6px;
+            display: inline-block;
+            box-shadow: 0 4px 12px rgba(139,92,246,0.4);
+            animation: glow 2s infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 4px 12px rgba(139,92,246,0.4); }
+            50% { box-shadow: 0 4px 20px rgba(139,92,246,0.8); }
+        }
+
+        .admin-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+            filter: brightness(1.1);
+        }
+
+        .msg.admin-msg {
+            max-width: 90%;
+            animation: adminSlide 0.5s ease;
+        }
+
+        @keyframes adminSlide {
+            from { 
+                opacity: 0; 
+                transform: scale(0.9) translateY(20px); 
+            }
+            to { 
+                opacity: 1; 
+                transform: scale(1) translateY(0); 
+            }
+        }
+
+        .msg.admin-msg .bubble {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            color: white;
+            border: 3px solid rgba(255,255,255,0.3);
+            box-shadow: 0 8px 32px rgba(139,92,246,0.5);
+        }
+
+        .msg-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .msg:hover .msg-actions {
+            opacity: 1;
+        }
+
+        .btn-action {
+            padding: 4px 12px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 700;
+            transition: all 0.3s;
+        }
+
+        .btn-delete {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-delete:hover {
+            background: #dc2626;
+        }
+
+        .btn-ban {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .btn-ban:hover {
+            background: #d97706;
+        }
+
         .input-box {
             padding: 24px;
             border-top: 2px solid #f1f5f9;
@@ -692,9 +783,9 @@
                     <p>Personalize sua conta com sua foto</p>
                 </div>
                 <div class="card">
-                    <div class="card-icon">👥</div>
-                    <h3>Usuários Online</h3>
-                    <p>Veja quem está conectado em tempo real</p>
+                    <div class="card-icon">👑</div>
+                    <h3>Sistema Admin</h3>
+                    <p>Moderação completa com senha protegida</p>
                 </div>
                 <div class="card">
                     <div class="card-icon">💾</div>
@@ -709,7 +800,7 @@
                 <h2>📖 Sobre o Projeto</h2>
                 <p>O Chat Colégio Futura é uma plataforma desenvolvida para conectar todos os alunos da escola em um ambiente seguro, divertido e interativo!</p>
                 <p><strong>Para funcionar como servidor real</strong>, este chat precisa de um backend. Recomendamos Firebase (gratuito) ou a Claude Storage API.</p>
-                <p><strong>✨ Novo:</strong> Agora com salvamento automático de login e mensagens!</p>
+                <p><strong>✨ Recursos:</strong> Salvamento automático, sistema de administração, moderação de conteúdo</p>
             </div>
             <div class="info-box">
                 <h2>💻 Tecnologias</h2>
@@ -720,14 +811,10 @@
                 <span class="badge">LocalStorage</span>
             </div>
             <div class="info-box">
-                <h2>🔧 Como Configurar Firebase</h2>
-                <p><strong>Passo 1:</strong> Acesse firebase.google.com e faça login</p>
-                <p><strong>Passo 2:</strong> Clique em "Adicionar Projeto"</p>
-                <p><strong>Passo 3:</strong> No menu, vá em "Realtime Database"</p>
-                <p><strong>Passo 4:</strong> Clique em "Criar banco de dados"</p>
-                <p><strong>Passo 5:</strong> Escolha "Iniciar no modo de teste"</p>
-                <p><strong>Passo 6:</strong> Copie as credenciais do projeto</p>
-                <p><strong>Passo 7:</strong> Cole as credenciais no código JavaScript (linha firebaseConfig)</p>
+                <h2>👑 Sistema de Administração</h2>
+                <p><strong>Poderes:</strong> Apagar mensagens, banir/silenciar usuários, limpar chat, anúncios, exportar dados</p>
+                <p><strong>Acesso:</strong> Clique em "Entrar como Admin" na tela de login</p>
+                <p><strong>⚠️ Importante:</strong> A senha de administrador é confidencial e protegida</p>
             </div>
             <div class="info-box">
                 <h2>👨‍💻 Desenvolvedor</h2>
@@ -782,7 +869,12 @@
                         <option>9º Ano</option>
                     </select>
                 </div>
+                <div class="form-group" id="adminField" style="display:none;">
+                    <label>🔐 Senha de Administrador</label>
+                    <input type="password" id="senhaAdmin" placeholder="Digite a senha (opcional)">
+                </div>
                 <button class="btn" style="width:100%; margin-bottom: 12px;" onclick="entrar()">🚀 Entrar no Chat</button>
+                <button class="btn" style="width:100%; background: linear-gradient(135deg, #8b5cf6, #7c3aed); margin-bottom: 12px;" onclick="toggleAdminField()">👑 Entrar como Admin</button>
                 <button class="btn" style="width:100%; background: linear-gradient(135deg, #ef4444, #dc2626);" onclick="limparDados()">🗑️ Limpar Dados Salvos</button>
             </div>
 
@@ -792,7 +884,63 @@
                         <h2>💬 Chat Futura</h2>
                         <div class="user-info-display" id="userInfo"></div>
                     </div>
-                    <button class="btn-sair" onclick="sair()">✕ Sair</button>
+                    <div style="display: flex; gap: 12px; align-items: center;">
+                        <button id="adminBtn" class="btn-sair" style="display: none; background: linear-gradient(135deg, #8b5cf6, #7c3aed); border-color: #8b5cf6;" onclick="toggleAdminPanel()">👑 Painel Admin</button>
+                        <button class="btn-sair" onclick="sair()">✕ Sair</button>
+                    </div>
+                </div>
+                <div id="adminPanel" style="display: none; background: linear-gradient(135deg, #8b5cf6, #7c3aed); padding: 30px; border-radius: 20px; margin-bottom: 24px; color: white; box-shadow: 0 20px 60px rgba(139,92,246,0.4);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                        <div>
+                            <h3 style="margin: 0; font-size: 28px; font-weight: 900;">👑 Painel de Administração</h3>
+                            <p style="margin: 5px 0 0 0; opacity: 0.9; font-size: 14px;">Controle total do chat</p>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.2); padding: 10px 20px; border-radius: 12px; font-weight: 700; font-size: 14px;">
+                            ⚡ MODO DEUS
+                        </div>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 20px;">
+                        <button onclick="limparTodasMensagens()" class="admin-btn" style="padding: 14px 20px; background: rgba(239,68,68,0.9); border: none; border-radius: 12px; color: white; cursor: pointer; font-weight: 700; font-size: 14px; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                            <span style="font-size: 20px;">🗑️</span>
+                            <span>Limpar Chat</span>
+                        </button>
+                        <button onclick="verBanidos()" class="admin-btn" style="padding: 14px 20px; background: rgba(245,158,11,0.9); border: none; border-radius: 12px; color: white; cursor: pointer; font-weight: 700; font-size: 14px; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                            <span style="font-size: 20px;">🚫</span>
+                            <span>Banidos</span>
+                        </button>
+                        <button onclick="exportarDados()" class="admin-btn" style="padding: 14px 20px; background: rgba(16,185,129,0.9); border: none; border-radius: 12px; color: white; cursor: pointer; font-weight: 700; font-size: 14px; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                            <span style="font-size: 20px;">📥</span>
+                            <span>Exportar</span>
+                        </button>
+                        <button onclick="enviarAnuncio()" class="admin-btn" style="padding: 14px 20px; background: rgba(59,130,246,0.9); border: none; border-radius: 12px; color: white; cursor: pointer; font-weight: 700; font-size: 14px; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                            <span style="font-size: 20px;">📢</span>
+                            <span>Anunciar</span>
+                        </button>
+                        <button onclick="silenciarUsuario()" class="admin-btn" style="padding: 14px 20px; background: rgba(251,146,60,0.9); border: none; border-radius: 12px; color: white; cursor: pointer; font-weight: 700; font-size: 14px; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                            <span style="font-size: 20px;">🔇</span>
+                            <span>Silenciar</span>
+                        </button>
+                        <button onclick="verEstatisticas()" class="admin-btn" style="padding: 14px 20px; background: rgba(168,85,247,0.9); border: none; border-radius: 12px; color: white; cursor: pointer; font-weight: 700; font-size: 14px; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                            <span style="font-size: 20px;">📊</span>
+                            <span>Stats</span>
+                        </button>
+                    </div>
+                    
+                    <div id="adminStats" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; background: rgba(255,255,255,0.1); padding: 15px; border-radius: 12px; backdrop-filter: blur(10px);">
+                        <div style="text-align: center;">
+                            <div style="font-size: 24px; font-weight: 900;" id="adminMsgCount">0</div>
+                            <div style="font-size: 12px; opacity: 0.9;">Mensagens</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 24px; font-weight: 900;" id="adminUserCount">0</div>
+                            <div style="font-size: 12px; opacity: 0.9;">Usuários</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 24px; font-weight: 900;" id="adminBanCount">0</div>
+                            <div style="font-size: 12px; opacity: 0.9;">Banidos</div>
+                        </div>
+                    </div>
                 </div>
                 <div class="chat-area">
                     <div class="mensagens-box">
@@ -827,7 +975,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <script>
-        // Credenciais do Firebase configuradas!
         const firebaseConfig = {
             apiKey: "AIzaSyDjOHEY.EodJlUDz_0010KAK9JN9hHSks",
             authDomain: "colgio-futura-alunos.firebaseapp.com",
@@ -835,7 +982,7 @@
             projectId: "colgio-futura-alunos",
             storageBucket: "colgio-futura-alunos.firebasestorage.app",
             messagingSenderId: "737866383013",
-            appId: "1:737866383013:web:dcb1f1f1e37037ab574c",
+            appId: "1:737866383013:web:dcb1f1f1e37037ab574c574c",
             measurementId: "G-9BXCQ5EP7W"
         };
 
@@ -859,14 +1006,16 @@
         let serie = '';
         let foto = '';
         let presenceRef = null;
+        let isAdmin = false;
         const ONLINE_TIMEOUT = 15000;
+        const ADMIN_PASSWORD = 'pedro291968';
+        let bannedUsers = JSON.parse(localStorage.getItem('bannedUsers') || '[]');
+        let silencedUsers = JSON.parse(localStorage.getItem('silencedUsers') || '[]');
 
-        // Carregar dados salvos ao iniciar
         window.addEventListener('load', () => {
             carregarLoginSalvo();
         });
 
-        // Carregar login salvo e auto-entrar
         function carregarLoginSalvo() {
             const dadosSalvos = localStorage.getItem('chatFuturaLogin');
             if (dadosSalvos) {
@@ -874,6 +1023,7 @@
                 user = dados.nome;
                 serie = dados.serie;
                 foto = dados.foto || '';
+                isAdmin = dados.isAdmin || false;
                 
                 document.getElementById('nome').value = user;
                 document.getElementById('serie').value = serie;
@@ -885,7 +1035,20 @@
             }
         }
 
-        // Salvar/Carregar mensagens localStorage
+        function toggleAdminField() {
+            const field = document.getElementById('adminField');
+            field.style.display = field.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function toggleAdminPanel() {
+            if (!isAdmin) {
+                alert('❌ Acesso negado! Apenas administradores podem acessar este painel.');
+                return;
+            }
+            const panel = document.getElementById('adminPanel');
+            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+        }
+
         function salvarMensagem(nome, texto, fotoUrl, serieVal, timestamp) {
             if (!dbConfigured) {
                 let mensagens = localStorage.getItem('chatFuturaMensagens');
@@ -900,12 +1063,11 @@
             const mensagensSalvas = localStorage.getItem('chatFuturaMensagens');
             if (mensagensSalvas && !dbConfigured) {
                 JSON.parse(mensagensSalvas).forEach(msg => {
-                    adicionarMensagem(msg.nome, msg.texto, msg.foto, msg.serie, msg.timestamp, msg.nome === user);
+                    adicionarMensagem(msg.nome, msg.texto, msg.foto, msg.serie, msg.timestamp, msg.nome === user, false);
                 });
             }
         }
 
-        // Navegação entre páginas
         function abrirPagina(id) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.menu button').forEach(b => b.classList.remove('active'));
@@ -913,7 +1075,6 @@
             document.getElementById('btn-' + id).classList.add('active');
         }
 
-        // Preview da foto
         document.getElementById('foto').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (file) {
@@ -926,42 +1087,63 @@
             }
         });
 
-        // Entrar no chat (manual + auto-login)
         async function entrar() {
             const nome = document.getElementById('nome').value.trim();
             const serieVal = document.getElementById('serie').value;
+            const senhaAdmin = document.getElementById('senhaAdmin').value;
             
             if (!nome || !serieVal) {
                 alert('⚠️ Preencha todos os campos!');
                 return;
             }
 
+            if (bannedUsers.includes(nome.toLowerCase())) {
+                alert('🚫 Você foi banido do chat!');
+                return;
+            }
+
             user = nome;
             serie = serieVal;
             
-            // Salvar login
-            localStorage.setItem('chatFuturaLogin', JSON.stringify({ nome: user, serie, foto }));
+            if (senhaAdmin) {
+                if (senhaAdmin === ADMIN_PASSWORD) {
+                    isAdmin = true;
+                    alert('✅ Login admin realizado com sucesso!');
+                } else {
+                    alert('❌ Senha de administrador incorreta!');
+                    return;
+                }
+            }
+            
+            localStorage.setItem('chatFuturaLogin', JSON.stringify({ nome: user, serie, foto, isAdmin }));
             
             await iniciarChat();
         }
 
-        // Iniciar chat (usado por entrar() e auto-login)
         async function iniciarChat() {
             document.getElementById('registro').style.display = 'none';
             document.getElementById('chatBox').style.display = 'block';
-            document.getElementById('userInfo').textContent = `${user} - ${serie}`;
+            
+            const userInfoText = isAdmin ? `${user} - ${serie} 👑` : `${user} - ${serie}`;
+            document.getElementById('userInfo').textContent = userInfoText;
+
+            if (isAdmin) {
+                document.getElementById('adminBtn').style.display = 'block';
+                setInterval(atualizarStatsAdmin, 5000);
+                atualizarStatsAdmin();
+            }
 
             if (dbConfigured) {
                 const userId = user.replace(/[^a-zA-Z0-9]/g, '_');
                 presenceRef = db.ref('online/' + userId);
-                await presenceRef.set({ nome: user, serie, foto, timestamp: Date.now() });
+                await presenceRef.set({ nome: user, serie, foto, isAdmin, timestamp: Date.now() });
                 presenceRef.onDisconnect().remove();
 
                 setInterval(() => presenceRef?.update({ timestamp: Date.now() }), 5000);
 
                 db.ref('messages').limitToLast(50).on('child_added', (snapshot) => {
                     const msg = snapshot.val();
-                    adicionarMensagem(msg.nome, msg.texto, msg.foto, msg.serie, msg.timestamp, msg.nome === user);
+                    adicionarMensagem(msg.nome, msg.texto, msg.foto, msg.serie, msg.timestamp, msg.nome === user, msg.isAdmin, snapshot.key);
                 });
 
                 db.ref('online').on('value', (snapshot) => atualizarOnline(snapshot.val()));
@@ -970,47 +1152,70 @@
                 setInterval(limparOffline, 10000);
             } else {
                 carregarMensagensSalvas();
-                adicionarMensagem('Sistema', dbConfigured ? '✅ Login restaurado!' : '✅ Login salvo! Mensagens armazenadas localmente.', '', '', Date.now(), false);
+                adicionarMensagem('Sistema', '✅ Login salvo! Mensagens armazenadas localmente.', '', '', Date.now(), false, false);
             }
 
             carregarStats();
         }
 
-        // Enviar mensagem
         async function enviar() {
             const input = document.getElementById('msgInput');
             const texto = input.value.trim();
             if (!texto) return;
 
+            if (silencedUsers.includes(user.toLowerCase()) && !isAdmin) {
+                alert('🔇 Você está silenciado e não pode enviar mensagens!');
+                input.value = '';
+                return;
+            }
+
             const timestamp = Date.now();
 
             if (dbConfigured) {
-                await db.ref('messages').push({ nome: user, texto, foto, serie, timestamp });
+                await db.ref('messages').push({ nome: user, texto, foto, serie, timestamp, isAdmin });
             } else {
-                adicionarMensagem(user, texto, foto, serie, timestamp, true);
+                adicionarMensagem(user, texto, foto, serie, timestamp, true, isAdmin);
                 salvarMensagem(user, texto, foto, serie, timestamp);
             }
 
             input.value = '';
             input.focus();
+            
+            if (isAdmin) {
+                atualizarStatsAdmin();
+            }
         }
 
-        // Adicionar mensagem na interface
-        function adicionarMensagem(nome, texto, fotoUrl, serieVal, timestamp, isOwn) {
+        function adicionarMensagem(nome, texto, fotoUrl, serieVal, timestamp, isOwn, msgIsAdmin = false, msgId = null) {
             const msgs = document.getElementById('msgs');
             msgs.querySelector('.empty-state')?.remove();
 
             const msgDiv = document.createElement('div');
-            msgDiv.className = `msg ${isOwn ? 'own' : 'other'}`;
+            msgDiv.className = `msg ${isOwn ? 'own' : 'other'}${msgIsAdmin ? ' admin-msg' : ''}`;
+            msgDiv.dataset.msgId = msgId || '';
+            msgDiv.dataset.userName = nome;
             
             const hora = new Date(timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            
+            const adminBadge = msgIsAdmin ? '<span class="admin-badge">👑 ADMIN</span>' : '';
+            
+            let actionsHtml = '';
+            if (isAdmin && !isOwn) {
+                actionsHtml = `
+                    <div class="msg-actions">
+                        <button class="btn-action btn-delete" onclick="apagarMensagem('${msgId}', this); return false;">🗑️ Apagar</button>
+                        <button class="btn-action btn-ban" onclick="banirUsuario('${nome}'); return false;">🚫 Banir</button>
+                    </div>
+                `;
+            }
             
             msgDiv.innerHTML = `
                 <div class="avatar">${fotoUrl ? `<img src="${fotoUrl}">` : nome.charAt(0).toUpperCase()}</div>
                 <div class="bubble">
-                    <div class="msg-info">${nome} - ${serieVal}</div>
+                    <div class="msg-info">${nome} - ${serieVal}${adminBadge}</div>
                     <div class="msg-text">${texto}</div>
                     <div class="msg-time">${hora}</div>
+                    ${actionsHtml}
                 </div>
             `;
 
@@ -1018,7 +1223,6 @@
             msgs.scrollTop = msgs.scrollHeight;
         }
 
-        // Atualizar lista de usuários online
         function atualizarOnline(onlineData) {
             const list = document.getElementById('onlineList');
             const now = Date.now();
@@ -1038,7 +1242,7 @@
                         ${u.foto ? `<img src="${u.foto}">` : u.nome.charAt(0).toUpperCase()}
                     </div>
                     <div class="user-online-info">
-                        <div class="user-online-name">${u.nome}</div>
+                        <div class="user-online-name">${u.nome}${u.isAdmin ? ' 👑' : ''}</div>
                         <div class="user-online-serie">${u.serie}</div>
                     </div>
                     <div class="online-dot"></div>
@@ -1050,7 +1254,6 @@
             document.getElementById('online').textContent = count;
         }
 
-        // Limpar usuários offline
         async function limparOffline() {
             if (!dbConfigured) return;
             
@@ -1069,7 +1272,6 @@
             }
         }
 
-        // Carregar estatísticas
         async function carregarStats() {
             if (!dbConfigured) {
                 document.getElementById('totalMsg').textContent = '-';
@@ -1086,7 +1288,6 @@
             document.getElementById('totalUsers').textContent = usersSnap.numChildren();
         }
 
-        // Sair do chat
         function sair() {
             if (!confirm('🚪 Deseja sair?\n\n✅ Login e mensagens ficam salvos')) return;
             
@@ -1103,7 +1304,6 @@
             `;
         }
 
-        // Limpar todos os dados salvos
         function limparDados() {
             if (!confirm('🗑️ ATENÇÃO!\n\nApagar login e mensagens?')) return;
             
@@ -1112,13 +1312,233 @@
             
             document.getElementById('nome').value = '';
             document.getElementById('serie').value = '';
+            document.getElementById('senhaAdmin').value = '';
             document.getElementById('preview').innerHTML = '📷';
             foto = user = serie = '';
+            isAdmin = false;
             
             alert('✅ Dados apagados!');
         }
 
-        // Atualizar stats a cada 10 segundos
+        function apagarMensagem(msgId, btn) {
+            if (!isAdmin) {
+                alert('❌ Apenas administradores podem apagar mensagens!');
+                return;
+            }
+            
+            if (!confirm('Apagar esta mensagem?')) return;
+            
+            if (dbConfigured && msgId) {
+                db.ref('messages/' + msgId).remove().then(() => {
+                    btn.closest('.msg').remove();
+                    atualizarStatsAdmin();
+                }).catch(err => {
+                    console.error('Erro ao apagar:', err);
+                    alert('Erro ao apagar mensagem');
+                });
+            } else {
+                btn.closest('.msg').remove();
+                atualizarStatsAdmin();
+            }
+        }
+
+        function banirUsuario(nomeUsuario) {
+            if (!isAdmin) {
+                alert('❌ Apenas administradores podem banir usuários!');
+                return;
+            }
+            
+            if (!confirm(`Banir ${nomeUsuario} permanentemente?`)) return;
+            
+            bannedUsers.push(nomeUsuario.toLowerCase());
+            localStorage.setItem('bannedUsers', JSON.stringify(bannedUsers));
+            
+            document.querySelectorAll(`.msg[data-user-name="${nomeUsuario}"]`).forEach(msg => msg.remove());
+            
+            alert(`✅ ${nomeUsuario} foi banido!`);
+            atualizarStatsAdmin();
+        }
+
+        async function limparTodasMensagens() {
+            if (!isAdmin) {
+                alert('❌ Apenas administradores podem limpar mensagens!');
+                return;
+            }
+            
+            if (!confirm('⚠️ ATENÇÃO!\n\nIsso vai apagar TODAS as mensagens do chat!\n\nTem certeza?')) return;
+            
+            try {
+                if (dbConfigured) {
+                    await db.ref('messages').remove();
+                }
+                
+                document.getElementById('msgs').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">💬</div>
+                        <div class="empty-state-text">Chat limpo pelo administrador</div>
+                    </div>
+                `;
+                
+                localStorage.removeItem('chatFuturaMensagens');
+                alert('✅ Todas as mensagens foram apagadas!');
+                atualizarStatsAdmin();
+            } catch(err) {
+                console.error('Erro ao limpar chat:', err);
+                alert('Erro ao limpar mensagens');
+            }
+        }
+
+        function verBanidos() {
+            if (!isAdmin) {
+                alert('❌ Apenas administradores podem ver banidos!');
+                return;
+            }
+            
+            if (bannedUsers.length === 0) {
+                alert('Nenhum usuário banido');
+                return;
+            }
+            
+            const lista = bannedUsers.join('\n');
+            const desbanir = confirm(`Usuários banidos:\n\n${lista}\n\nDeseja desbanir todos?`);
+            
+            if (desbanir) {
+                localStorage.removeItem('bannedUsers');
+                bannedUsers = [];
+                alert('✅ Todos foram desbanidos!');
+                atualizarStatsAdmin();
+            }
+        }
+
+        function exportarDados() {
+            if (!isAdmin) {
+                alert('❌ Apenas administradores podem exportar dados!');
+                return;
+            }
+            
+            try {
+                const dados = {
+                    mensagens: localStorage.getItem('chatFuturaMensagens'),
+                    usuarios: localStorage.getItem('chatFuturaLogin'),
+                    banidos: bannedUsers,
+                    silenciados: silencedUsers,
+                    data: new Date().toISOString()
+                };
+                
+                const blob = new Blob([JSON.stringify(dados, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `chat-backup-${Date.now()}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+                
+                alert('✅ Dados exportados!');
+            } catch(err) {
+                console.error('Erro ao exportar:', err);
+                alert('Erro ao exportar dados');
+            }
+        }
+
+        function enviarAnuncio() {
+            if (!isAdmin) {
+                alert('❌ Apenas administradores podem enviar anúncios!');
+                return;
+            }
+            
+            const mensagem = prompt('📢 Digite o anúncio para todos os usuários:');
+            if (!mensagem) return;
+            
+            const timestamp = Date.now();
+            const textoAnuncio = `📢 ANÚNCIO DO ADMINISTRADOR: ${mensagem}`;
+            
+            if (dbConfigured) {
+                db.ref('messages').push({ 
+                    nome: '🔔 Sistema', 
+                    texto: textoAnuncio, 
+                    foto: '', 
+                    serie: 'Administração', 
+                    timestamp, 
+                    isAdmin: true 
+                });
+            } else {
+                adicionarMensagem('🔔 Sistema', textoAnuncio, '', 'Administração', timestamp, false, true);
+                salvarMensagem('🔔 Sistema', textoAnuncio, '', 'Administração', timestamp);
+            }
+            
+            alert('✅ Anúncio enviado!');
+            atualizarStatsAdmin();
+        }
+
+        function silenciarUsuario() {
+            if (!isAdmin) {
+                alert('❌ Apenas administradores podem silenciar usuários!');
+                return;
+            }
+            
+            const nomeUsuario = prompt('Digite o nome do usuário para silenciar:');
+            if (!nomeUsuario) return;
+            
+            const nome = nomeUsuario.trim().toLowerCase();
+            
+            if (silencedUsers.includes(nome)) {
+                const dessilenciar = confirm(`${nomeUsuario} já está silenciado. Deseja remover o silêncio?`);
+                if (dessilenciar) {
+                    silencedUsers = silencedUsers.filter(u => u !== nome);
+                    localStorage.setItem('silencedUsers', JSON.stringify(silencedUsers));
+                    alert(`✅ ${nomeUsuario} pode falar novamente!`);
+                }
+            } else {
+                silencedUsers.push(nome);
+                localStorage.setItem('silencedUsers', JSON.stringify(silencedUsers));
+                alert(`🔇 ${nomeUsuario} foi silenciado!`);
+            }
+            
+            atualizarStatsAdmin();
+        }
+
+        function verEstatisticas() {
+            if (!isAdmin) {
+                alert('❌ Apenas administradores podem ver estatísticas detalhadas!');
+                return;
+            }
+            
+            const totalMsg = document.querySelectorAll('.msg').length;
+            const usuariosUnicos = new Set();
+            document.querySelectorAll('.msg').forEach(msg => {
+                usuariosUnicos.add(msg.dataset.userName);
+            });
+            
+            const stats = `
+📊 ESTATÍSTICAS DETALHADAS
+
+💬 Total de mensagens: ${totalMsg}
+👥 Usuários únicos: ${usuariosUnicos.size}
+🚫 Usuários banidos: ${bannedUsers.length}
+🔇 Usuários silenciados: ${silencedUsers.length}
+⏰ Hora atual: ${new Date().toLocaleTimeString('pt-BR')}
+
+Lista de usuários:
+${Array.from(usuariosUnicos).join(', ') || 'Nenhum'}
+            `.trim();
+            
+            alert(stats);
+        }
+
+        function atualizarStatsAdmin() {
+            if (!isAdmin) return;
+            
+            const totalMsg = document.querySelectorAll('.msg').length;
+            const usuariosUnicos = new Set();
+            document.querySelectorAll('.msg').forEach(msg => {
+                usuariosUnicos.add(msg.dataset.userName);
+            });
+            
+            document.getElementById('adminMsgCount').textContent = totalMsg;
+            document.getElementById('adminUserCount').textContent = usuariosUnicos.size;
+            document.getElementById('adminBanCount').textContent = bannedUsers.length;
+        }
+
         setInterval(carregarStats, 10000);
     </script>
 </body>
